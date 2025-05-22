@@ -6,12 +6,19 @@ import pyodbc
 app = Flask(__name__)
 CORS(app)
 
+#Rota principal para verificar se a API está funcionando
+@app.route('/')
+def index():
+    return 'API de mensagens do Teams está no ar!'
+
+#Variáveis de ambiente (configuradas no Azure)
 SQL_SERVER   = os.getenv("AZURE_SQL_SERVER")
 SQL_DATABASE = os.getenv("AZURE_SQL_DATABASE")
 SQL_USER     = os.getenv("AZURE_SQL_USER")
 SQL_PASSWORD = os.getenv("AZURE_SQL_PASSWORD")
 DRIVER       = os.getenv("AZURE_SQL_DRIVER", "ODBC Driver 17 for SQL Server")
 
+#String de conexão
 conn_str = (
     f"DRIVER={{ {DRIVER} }};"
     f"SERVER={SQL_SERVER};"
@@ -19,6 +26,7 @@ conn_str = (
     f"UID={SQL_USER};PWD={SQL_PASSWORD}"
 )
 
+#Rota para buscar a última mensagem
 @app.route('/mensagem-atual')
 def get_ultima_mensagem():
     conn = pyodbc.connect(conn_str)
@@ -36,6 +44,7 @@ def get_ultima_mensagem():
         "datahora": row.datahora.isoformat()
     })
 
+#Rota para histórico de mensagens anteriores
 @app.route('/historico')
 def get_historico():
     conn = pyodbc.connect(conn_str)
@@ -57,5 +66,6 @@ def get_historico():
     } for r in rows]
     return jsonify(historico)
 
+#Inicializa a API no host e porta corretos para o Azure
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
